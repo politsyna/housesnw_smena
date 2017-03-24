@@ -1,0 +1,6 @@
+name: node_smena
+description: 'node_smena'
+type: module
+core: 8.x
+version: 1.1
+package: Synapse

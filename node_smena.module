@@ -1,0 +1,66 @@
+<?php
+
+/**
+ * @file
+ * Module.
+ */
+
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
+use Drupal\node_smena\Controller\Zarplata;
+
+/**
+ * Node_smena_entity_presave.
+ */
+function node_smena_entity_presave(EntityInterface $node) {
+  if (method_exists($node, 'getType') && $node->getType() == 'smena') {
+    $date = strtotime($node->field_smena_date->value);
+    $title = "Распиловка от " . format_date($date, 'tolko_data');
+    $node->title->setValue($title);
+    $cost_sum = 0;
+    foreach ($node->field_smena_ref_vyhod_pilom as $entity_reference_item) {
+      $node_pilom = $entity_reference_item->entity;
+      $cost = $node_pilom->field_pilom_cost_itog->value;
+      $cost_sum = $cost_sum + $cost;
+    }
+    $node->field_smena_cost_sum->setValue($cost_sum);
+  }
+  if (method_exists($node, 'getType') && $node->getType() == 'rashod_breven') {
+    $title = "Распиловка бревен";
+    $node->title->setValue($title);
+  }
+  if (method_exists($node, 'getType') && $node->getType() == 'rashod_pilom') {
+    $title = "Распиловка пиломатериалов";
+    $node->title->setValue($title);
+  }
+  if (method_exists($node, 'getType') && $node->getType() == 'vyhod_pilom') {
+    $title = "Выход пиломатериалов";
+    $node->title->setValue($title);
+    $vysota = ($node->field_pilom_vysota->value) / 1000;
+    $dlina = ($node->field_pilom_dlina->value) / 1000;
+    $shirina = ($node->field_pilom_shirina->value) / 1000;
+    $kol = $node->field_pilom_kolvo->value;
+    $cost = $node->field_pilom_cost->value;
+    $ob = $dlina * $shirina * $vysota;
+    $kolvo = $kol * $ob;
+    $cost_itog = $kolvo * $cost;
+    $node->field_pilom_cost_itog->setValue($cost_itog);
+  }
+
+}
+
+/**
+ * Node_smena_entity_view.
+ */
+function node_smena_entity_view(array &$build, EntityInterface $entity, EntityViewDisplayInterface $display, $view_mode) {
+  if (method_exists($entity, 'getType') && $entity->getType() == 'smena') {
+    $build['koeff_smena'] = \Drupal::formBuilder()->getForm('Drupal\node_smena\Form\KoeffSmena', $entity);
+    $kub = \Drupal\node_prihod\Controller\Kubaturnik::get(46, 2000);
+    dsm($kub);
+    /*$zarplata = Zarplata::zplataCounter($entity);
+    $build['zarplata'] = [
+      '#markup' => '<span class="kub">Расчетная стоимость: </span>' . number_format($zarplata, 0, ",", " ") . ' руб.',
+    ];*/
+    $entity->save(TRUE);
+  }
+}

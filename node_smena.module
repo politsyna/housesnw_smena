@@ -7,7 +7,8 @@
 
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
-use Drupal\node_smena\Controller\Zarplata;
+use Drupal\node_smena\Controller\KubaturaSum;
+use Drupal\node_prihod\Controller\Kubaturnik;
 
 /**
  * Node_smena_entity_presave.
@@ -45,6 +46,8 @@ function node_smena_entity_presave(EntityInterface $node) {
     $kolvo = $kol * $ob;
     $cost_itog = $kolvo * $cost;
     $node->field_pilom_cost_itog->setValue($cost_itog);
+    $node->field_pilom_kubatura->setValue($kolvo);
+
   }
 
 }
@@ -55,11 +58,11 @@ function node_smena_entity_presave(EntityInterface $node) {
 function node_smena_entity_view(array &$build, EntityInterface $entity, EntityViewDisplayInterface $display, $view_mode) {
   if (method_exists($entity, 'getType') && $entity->getType() == 'smena') {
     $build['koeff_smena'] = \Drupal::formBuilder()->getForm('Drupal\node_smena\Form\KoeffSmena', $entity);
-    $kub = \Drupal\node_prihod\Controller\Kubaturnik::get(46, 2000);
-    dsm($kub);
-    /*$zarplata = Zarplata::zplataCounter($entity);
-    $build['zarplata'] = [
-      '#markup' => '<span class="kub">Расчетная стоимость: </span>' . number_format($zarplata, 0, ",", " ") . ' руб.',
+    $kub = Kubaturnik::get(46, 2000);
+    // dsm($kub);
+    $kubatura_sum = KubaturaSum::kubatura($entity);
+    /*$build['kubatura'] = [
+      '#markup' => '<span class="kub">Кубатура общая за смену: </span>' . number_format($kubatura_sum, 3, ".", " ") . ' куб.м',
     ];*/
     $entity->save(TRUE);
   }

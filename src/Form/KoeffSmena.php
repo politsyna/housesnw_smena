@@ -46,7 +46,11 @@ class KoeffSmena extends FormBase {
           $sum_procent = $get_values[$form_key1];
           $form_key2 = 'team2-' . $nid;
           $shtraf = str_replace(',', '.', $get_values[$form_key2]);
-          $zplata = ($cost_sum * $procent / 100) - $shtraf;
+          $form_key3 = 'team3-' . $nid;
+          $rashod = str_replace(',', '.', $get_values[$form_key3]);
+          $form_key4 = 'team4-' . $nid;
+          $komment = str_replace(',', '.', $get_values[$form_key4]);
+          $zplata = ($cost_sum * $procent / 100) - $shtraf - $rashod;
           $query = \Drupal::entityQuery('node');
           $query->condition('status', 1);
           $query->condition('type', 'oplata');
@@ -61,6 +65,8 @@ class KoeffSmena extends FormBase {
               'field_oplata_ref_team' => $nid,
               'field_oplata_procent' => $procent,
               'field_oplata_shtraf' => $shtraf,
+              'field_oplata_rashod' => $rashod,
+              'field_oplata_komment' => $komment,
               'field_oplata' => $zplata,
               'uid' => \Drupal::currentUser()->id(),
             ];
@@ -74,6 +80,8 @@ class KoeffSmena extends FormBase {
               if ($k == 0) {
                 $node_oplata->field_oplata_procent->setValue($procent);
                 $node_oplata->field_oplata_shtraf->setValue($shtraf);
+                $node_oplata->field_oplata_rashod->setValue($rashod);
+                $node_oplata->field_oplata_komment->setValue($komment);
                 $node_oplata->field_oplata->setValue($zplata);
               }
               else {
@@ -128,14 +136,18 @@ class KoeffSmena extends FormBase {
       if (is_object($node_oplata)) {
         $procent = $node_oplata->field_oplata_procent->value;
         $shtraf = $node_oplata->field_oplata_shtraf->value;
+        $rashod = $node_oplata->field_oplata_rashod->value;
+        $komment = $node_oplata->field_oplata_komment->value;
       }
       else {
         $procent = 0;
         $shtraf = 0;
+        $rashod = 0;
+        $komment = "";
       }
       $form['team-' . $id] = [
         '#type' => 'label',
-        '#title' => 'Работник: ' . $people,
+        '#title' => '<h5><b>Работник: ' . $people . '</b></h5>',
       ];
       $form['team1-' . $id] = [
         '#type' => 'textfield',
@@ -148,6 +160,20 @@ class KoeffSmena extends FormBase {
         '#type' => 'textfield',
         '#title' => 'штраф работника: ',
         '#default_value' => number_format($shtraf, 0, ",", " "),
+        "#prefix" => '<div class="col-md-6">',
+        "#suffix" => '</div></div>',
+      ];
+      $form['team3-' . $id] = [
+        '#type' => 'textfield',
+        '#title' => 'расход работника: ',
+        '#default_value' => number_format($rashod, 0, ",", " "),
+        "#prefix" => '<div class="row"><div class="col-md-6">',
+        "#suffix" => '</div>',
+      ];
+      $form['team4-' . $id] = [
+        '#type' => 'textfield',
+        '#title' => 'комментарий (статья расхода): ',
+        '#default_value' => $komment,
         "#prefix" => '<div class="col-md-6">',
         "#suffix" => '</div></div>',
       ];
